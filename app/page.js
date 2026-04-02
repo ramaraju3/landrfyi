@@ -1,4 +1,32 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Home() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await fetch("https://script.google.com/macros/s/AKfycbwAO5CX2LHWYkxAidn7fy7blb2ny6fpebQ2iHECrHSNDd1-38IE0ZT8GRxAyIME3KNk/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      setSubmitted(true);
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoading(false);
+  };
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
@@ -58,16 +86,28 @@ export default function Home() {
       <section id="waitlist" className="bg-indigo-600 py-24 px-6 text-white text-center">
         <h2 className="text-3xl font-bold mb-4">Be the first to know when we launch.</h2>
         <p className="text-indigo-200 mb-10">Join the waitlist and get early access when landr.fyi goes live.</p>
-        <form className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="flex-1 px-5 py-3 rounded-full text-gray-900 outline-none"
-          />
-          <button type="submit" className="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-full hover:bg-indigo-50 transition">
-            Join Waitlist
-          </button>
-        </form>
+
+        {submitted ? (
+          <p className="text-2xl font-semibold">🎉 You're on the list! We'll be in touch.</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+            <input
+              type="email"
+              required
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 px-5 py-3 rounded-full text-gray-900 outline-none"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-full hover:bg-indigo-50 transition"
+            >
+              {loading ? "Joining..." : "Join Waitlist"}
+            </button>
+          </form>
+        )}
       </section>
 
       {/* Footer */}
