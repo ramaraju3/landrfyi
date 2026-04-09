@@ -6,8 +6,7 @@ import { supabase } from "../../lib/supabase";
 export default function Browse() {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ industry: "", company_tier: "" });
-
+  const [filter, setFilter] = useState({ industry: "", company_tier: "", role: "" });
   useEffect(() => {
     fetchResumes();
   }, [filter]);
@@ -18,6 +17,7 @@ export default function Browse() {
 
     if (filter.industry) query = query.eq("industry", filter.industry);
     if (filter.company_tier) query = query.eq("company_tier", filter.company_tier);
+    if (filter.role) query = query.ilike("role", `%${filter.role}%`);
 
     const { data, error } = await query;
     if (!error) setResumes(data);
@@ -39,29 +39,36 @@ export default function Browse() {
         <p className="text-gray-500 mb-10">Real resumes from people who landed the job. All personal info removed.</p>
 
         {/* Filters */}
-        <div className="flex gap-4 mb-10 flex-wrap">
-          <select
-            className="border px-4 py-2 rounded-full text-sm outline-none"
-            onChange={(e) => setFilter(f => ({ ...f, industry: e.target.value }))}
-          >
-            <option value="">All Industries</option>
-            <option value="Tech">Tech</option>
-            <option value="Finance">Finance</option>
-            <option value="Consulting">Consulting</option>
-            <option value="Healthcare">Healthcare</option>
-          </select>
+<div className="flex gap-4 mb-10 flex-wrap">
+  <input
+    type="text"
+    placeholder="Search by role..."
+    className="border px-4 py-2 rounded-full text-sm outline-none flex-1 min-w-48"
+    onChange={(e) => setFilter(f => ({ ...f, role: e.target.value }))}
+  />
 
-          <select
-            className="border px-4 py-2 rounded-full text-sm outline-none"
-            onChange={(e) => setFilter(f => ({ ...f, company_tier: e.target.value }))}
-          >
-            <option value="">All Company Tiers</option>
-            <option value="FAANG">FAANG</option>
-            <option value="Big Tech">Big Tech</option>
-            <option value="Startup">Startup</option>
-            <option value="Consulting">Consulting</option>
-          </select>
-        </div>
+  <select
+    className="border px-4 py-2 rounded-full text-sm outline-none"
+    onChange={(e) => setFilter(f => ({ ...f, industry: e.target.value }))}
+  >
+    <option value="">All Industries</option>
+    <option value="Tech">Tech</option>
+    <option value="Finance">Finance</option>
+    <option value="Consulting">Consulting</option>
+    <option value="Healthcare">Healthcare</option>
+  </select>
+
+  <select
+    className="border px-4 py-2 rounded-full text-sm outline-none"
+    onChange={(e) => setFilter(f => ({ ...f, company_tier: e.target.value }))}
+  >
+    <option value="">All Company Tiers</option>
+    <option value="FAANG">FAANG</option>
+    <option value="Big Tech">Big Tech</option>
+    <option value="Startup">Startup</option>
+    <option value="Consulting">Consulting</option>
+  </select>
+</div>
 
         {/* Resume Cards */}
         {loading ? (
