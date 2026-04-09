@@ -114,7 +114,12 @@ export default function Browse() {
                       )}
                       <h2 className="text-xl font-bold">{resume.role}</h2>
                     </div>
-                    <p className="text-gray-500 text-sm">{resume.company_name || "Company"} · {resume.industry} · {resume.year_hired}</p>
+                    <p className="text-gray-500 text-sm flex items-center gap-2">
+                      {resume.company_name || "Company"} · {resume.industry} · {resume.year_hired}
+                      {resume.verified && (
+                        <span className="bg-green-100 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-full">✅ Verified</span>
+                      )}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">

@@ -61,7 +61,12 @@ export default function ResumePage() {
                   onError={(e) => e.target.style.display = "none"}
                 />
               )}
-              <p className="text-gray-500">{resume.company_name || "Company"} · {resume.industry} · Hired in {resume.year_hired}</p>
+              <p className="text-gray-500 flex items-center gap-2">
+                {resume.company_name || "Company"} · {resume.industry} · Hired in {resume.year_hired}
+                {resume.verified && (
+                  <span className="bg-green-100 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-full">✅ Verified</span>
+                )}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">

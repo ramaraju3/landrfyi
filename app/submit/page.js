@@ -72,6 +72,17 @@ export default function Submit() {
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resumeId, setResumeId] = useState(null);
+  const [workEmail, setWorkEmail] = useState("");
+
+  const blockedDomains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com", "protonmail.com", "mail.com", "zoho.com", "ymail.com"];
+
+  const isPersonalEmail = (email) => {
+    const domain = email.split("@")[1]?.toLowerCase();
+    return blockedDomains.includes(domain);
+  };
+
+  const [verificationSent, setVerificationSent] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleChange = (e) =>
@@ -171,6 +182,12 @@ export default function Submit() {
     }
     setLoading(true);
 
+    if (workEmail && isPersonalEmail(workEmail)) {
+      alert("Please use a work email address for verification.");
+      setLoading(false);
+      return;
+    }
+
     let fileUrl = null;
 
     if (file) {
@@ -209,8 +226,26 @@ export default function Submit() {
       },
     ]);
 
-    if (!error) setSubmitted(true);
-    else alert("Something went wrong, please try again.");
+    if (!error) {
+      const { data: inserted } = await supabase
+        .from("resumes")
+        .select("id")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (workEmail && inserted) {
+        setResumeId(inserted.id);
+        await fetch("/api/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resumeId: inserted.id, workEmail }),
+        });
+        setVerificationSent(true);
+      }
+
+      setSubmitted(true);
+    } else alert("Something went wrong, please try again.");
 
     setLoading(false);
   };
@@ -230,6 +265,23 @@ export default function Submit() {
           onChange={handleChange}
           className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
         />
+      </div>
+
+      {/* Work Email */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Work Email <span className="text-gray-400 font-normal">(optional — for verified badge)</span></label>
+        <input
+          type="email"
+          placeholder="yourname@company.com"
+          value={workEmail}
+          onChange={(e) => setWorkEmail(e.target.value)}
+          className={`w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300 ${workEmail && isPersonalEmail(workEmail) ? "border-red-300 focus:ring-red-200" : ""}`}
+        />
+        {workEmail && isPersonalEmail(workEmail) ? (
+          <p className="text-xs text-red-400 mt-1">⚠️ Please use your work email, not a personal one. This is used for verification only and won't be shown publicly.</p>
+        ) : (
+          <p className="text-xs text-gray-400 mt-1">We'll send a one-time verification link. Your email is never shown publicly.</p>
+        )}
       </div>
 
       {/* Company Name */}
@@ -352,12 +404,11 @@ export default function Submit() {
         {submitted ? (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold mb-2">
-              Thank you for contributing!
-            </h2>
-            <p className="text-gray-500 mb-6">
-              Your resume will help others land their dream job.
-            </p>
+            <h2 className="text-2xl font-bold mb-2">Thank you for contributing!</h2>
+            <p className="text-gray-500 mb-6">Your resume will help others land their dream job.</p>
+            {verificationSent && (
+              <p className="text-indigo-600 font-medium mb-6">📧 Verification email sent to {workEmail} — click the link to get your verified badge.</p>
+            )}
             <a
               href="/browse"
               className="bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-indigo-700 transition"
