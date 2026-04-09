@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
+import ShareButton from "../../components/ShareButton";
 
 export default function ResumePage() {
   const { id } = useParams();
@@ -53,9 +54,12 @@ export default function ResumePage() {
             <h1 className="text-4xl font-extrabold mb-2">{resume.role}</h1>
             <p className="text-gray-500">{resume.company_tier} · {resume.industry} · Hired in {resume.year_hired}</p>
           </div>
-          <span className="bg-indigo-100 text-indigo-600 text-sm font-semibold px-4 py-2 rounded-full">
-            {resume.years_of_experience} yrs exp
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="bg-indigo-100 text-indigo-600 text-sm font-semibold px-4 py-2 rounded-full">
+              {resume.years_of_experience} yrs exp
+            </span>
+            <ShareButton url={`/resume/${resume.id}`} title={`Check out this ${resume.role} resume that landed a job at a ${resume.company_tier} company on landr.fyi`} />
+          </div>
         </div>
 
         {/* Divider */}

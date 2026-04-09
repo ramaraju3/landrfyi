@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import ShareButton from "../components/ShareButton";
 
 export default function Browse() {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ industry: "", company_tier: "", role: "" });
+  const router = useRouter();
   useEffect(() => {
     fetchResumes();
   }, [filter]);
@@ -78,18 +81,21 @@ export default function Browse() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {resumes.map((resume) => (
-<a href={`/resume/${resume.id}`} key={resume.id} className="block border rounded-2xl p-6 hover:shadow-md transition cursor-pointer">
+<div key={resume.id} onClick={() => router.push(`/resume/${resume.id}`)} className="block border rounded-2xl p-6 hover:shadow-md transition cursor-pointer">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h2 className="text-xl font-bold">{resume.role}</h2>
                     <p className="text-gray-500 text-sm">{resume.company_tier} · {resume.industry} · {resume.year_hired}</p>
                   </div>
-                  <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full">
-                    {resume.years_of_experience} yrs exp
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full">
+                      {resume.years_of_experience} yrs exp
+                    </span>
+                    <ShareButton url={`/resume/${resume.id}`} title={`Check out this ${resume.role} resume that landed a job at a ${resume.company_tier} company on landr.fyi`} />
+                  </div>
                 </div>
                 <p className="text-gray-600 text-sm leading-relaxed">{resume.resume_text}</p>
-              </a>
+              </div>
             ))}
           </div>
         )}
