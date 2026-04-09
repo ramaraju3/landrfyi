@@ -117,6 +117,9 @@ export default function Home() {
       <footer className="text-center py-8 text-gray-400 text-sm">
         <p>👀 {visitorCount.toLocaleString()} visits and counting</p>
         <p className="mt-1">© 2026 landr.fyi — Built for job seekers, by job seekers.</p>
+        <p className="mt-2">
+          <a href="/legal" className="hover:text-indigo-600 transition">Terms · Privacy · Disclaimer</a>
+        </p>
       </footer>
     </main>
   );
