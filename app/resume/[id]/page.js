@@ -61,10 +61,35 @@ export default function ResumePage() {
         {/* Divider */}
         <hr className="mb-8" />
 
-        {/* Resume Text */}
-        <div className="bg-gray-50 rounded-2xl p-8">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">Anonymized Resume</h2>
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{resume.resume_text}</p>
+        {/* Resume Content */}
+<div className="bg-gray-50 rounded-2xl p-8 select-none" onCopy={(e) => e.preventDefault()}>
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">Anonymized Resume</h2>
+
+          {resume.display_mode === "file" && resume.file_url ? (
+            <div className="w-full">
+              {resume.file_url.endsWith(".pdf") ? (
+                <iframe
+                  src={resume.file_url}
+                  className="w-full rounded-xl border"
+                  style={{ height: "800px" }}
+                />
+              ) : resume.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                <img
+                  src={resume.file_url}
+                  alt="Resume"
+                  className="w-full rounded-xl border"
+                />
+              ) : (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-5xl mb-4">📄</div>
+                  <p className="font-medium text-gray-500">Preview not available for this file type</p>
+                  <p className="text-sm mt-1">The contributor uploaded a Word document</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{resume.resume_text}</p>
+          )}
         </div>
 
         {/* CTA */}
