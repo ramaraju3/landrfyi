@@ -22,7 +22,12 @@ export default function Submit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+    
+    if (form.resume_text.length < 200) {
+  alert("Please add more detail to your resume — minimum 200 characters.");
+  setLoading(false);
+  return;
+}
     const { error } = await supabase.from("resumes").insert([{
       ...form,
       years_of_experience: parseInt(form.years_of_experience),
@@ -145,20 +150,38 @@ export default function Submit() {
               <label className="block text-sm font-medium mb-1">Anonymized Resume</label>
               <p className="text-xs text-gray-400 mb-2">Remove your name, email, phone, LinkedIn, company names, and any identifying details before pasting.</p>
               <textarea
-                name="resume_text"
-                required
-                rows={12}
-                placeholder="Paste your anonymized resume here..."
-                value={form.resume_text}
-                onChange={handleChange}
-                className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
-              />
+  name="resume_text"
+  required
+  rows={12}
+  placeholder="Paste your anonymized resume here..."
+  value={form.resume_text}
+  onChange={handleChange}
+  className={`w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 resize-none ${form.resume_text.length > 5000 ? "border-red-400 focus:ring-red-300" : "focus:ring-indigo-300"}`}
+/>
+<div className="flex justify-between text-xs mt-1">
+  <span className={
+    form.resume_text.length < 200 ? "text-red-400" :
+    form.resume_text.length > 5000 ? "text-red-500 font-medium" :
+    "text-green-600"
+  }>
+    {form.resume_text.length < 200
+      ? `Minimum 200 characters (${200 - form.resume_text.length} more needed)`
+      : form.resume_text.length > 5000
+      ? `Too long — reduce by ${form.resume_text.length - 5000} characters to keep it meaningful`
+      : form.resume_text.length < 1000 ? "✓ Good"
+      : form.resume_text.length < 2500 ? "✓ Great"
+      : "✓ Perfect"}
+  </span>
+  <span className={form.resume_text.length > 5000 ? "text-red-500 font-medium" : "text-gray-400"}>
+    {form.resume_text.length} / 5000
+  </span>
+</div>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="bg-indigo-600 text-white px-6 py-4 rounded-full font-semibold hover:bg-indigo-700 transition"
+              disabled={loading || form.resume_text.length > 5000}
+              className="bg-indigo-600 text-white px-6 py-4 rounded-full font-semibold hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Submitting..." : "Submit Resume"}
             </button>
