@@ -1,11 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function Home() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resumeCount, setResumeCount] = useState(0);
+
+  useEffect(() => {
+  const fetchCount = async () => {
+    const { count } = await supabase
+      .from("resumes")
+      .select("*", { count: "exact", head: true });
+    setResumeCount(count);
+  };
+  fetchCount();
+}, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,9 +63,12 @@ export default function Home() {
         <h1 className="text-5xl font-extrabold leading-tight mb-6">
           See the resumes that <span className="text-indigo-600">actually got people hired.</span>
         </h1>
-        <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
-          landr.fyi is a community-driven library of real, anonymized resumes from people who landed the job. No more guessing what the bar looks like.
-        </p>
+        <p className="text-xl text-gray-500 mb-4 max-w-2xl mx-auto">
+  landr.fyi is a community-driven library of real, anonymized resumes from people who landed the job. No more guessing what the bar looks like.
+</p>
+<p className="text-indigo-600 font-semibold text-lg mb-10">
+  🗂 {resumeCount} resumes shared so far
+</p>
         <a href="#waitlist" className="bg-indigo-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-indigo-700 transition">
           Get Early Access
         </a>
