@@ -1,13 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [resumeCount, setResumeCount] = useState(0);
   const [visitorCount, setVisitorCount] = useState(0);
 
@@ -36,25 +32,6 @@ export default function Home() {
   trackAndFetchVisitors();
 }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      await fetch("https://script.google.com/macros/s/AKfycbwAO5CX2LHWYkxAidn7fy7blb2ny6fpebQ2iHECrHSNDd1-38IE0ZT8GRxAyIME3KNk/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      setSubmitted(true);
-    } catch (err) {
-      console.error(err);
-    }
-
-    setLoading(false);
-  };
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -68,8 +45,8 @@ export default function Home() {
       <a href="/submit" className="text-sm text-gray-500 hover:text-indigo-600 transition">
       Share Yours
       </a>
-      <a href="#waitlist" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
-      Join Waitlist
+      <a href="/browse" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
+        Browse Resumes
       </a>
       </div>
     </nav>
@@ -85,8 +62,8 @@ export default function Home() {
 <p className="text-indigo-600 font-semibold text-lg mb-10">
   🗂 {resumeCount} resumes shared so far
 </p>
-        <a href="#waitlist" className="bg-indigo-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-indigo-700 transition">
-          Get Early Access
+        <a href="/browse" className="bg-indigo-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-indigo-700 transition">
+          Browse Resumes
         </a>
       </section>
 
@@ -122,32 +99,18 @@ export default function Home() {
         </p>
       </section>
 
-      {/* Waitlist */}
-      <section id="waitlist" className="bg-indigo-600 py-24 px-6 text-white text-center">
-        <h2 className="text-3xl font-bold mb-4">Be the first to know when we launch.</h2>
-        <p className="text-indigo-200 mb-10">Join the waitlist and get early access when landr.fyi goes live.</p>
-
-        {submitted ? (
-          <p className="text-2xl font-semibold">🎉 You're on the list! We'll be in touch.</p>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-            <input
-              type="email"
-              required
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 px-5 py-3 rounded-full text-gray-900 outline-none"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-full hover:bg-indigo-50 transition"
-            >
-              {loading ? "Joining..." : "Join Waitlist"}
-            </button>
-          </form>
-        )}
+      {/* CTA */}
+      <section className="bg-indigo-600 py-24 px-6 text-white text-center">
+        <h2 className="text-3xl font-bold mb-4">Ready to land your next role?</h2>
+        <p className="text-indigo-200 mb-10">Browse real resumes from people who got hired. See the bar. Clear it.</p>
+        <div className="flex gap-4 justify-center flex-wrap">
+          <a href="/browse" className="bg-white text-indigo-600 font-semibold px-8 py-4 rounded-full hover:bg-indigo-50 transition">
+            Browse Resumes
+          </a>
+          <a href="/submit" className="border-2 border-white text-white font-semibold px-8 py-4 rounded-full hover:bg-indigo-500 transition">
+            Share Yours
+          </a>
+        </div>
       </section>
 
       {/* Footer */}
