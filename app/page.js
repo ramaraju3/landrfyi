@@ -9,6 +9,7 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resumeCount, setResumeCount] = useState(0);
+  const [visitorCount, setVisitorCount] = useState(0);
 
   useEffect(() => {
   const fetchCount = async () => {
@@ -18,6 +19,21 @@ export default function Home() {
     setResumeCount(count);
   };
   fetchCount();
+}, []);
+
+  useEffect(() => {
+  const trackAndFetchVisitors = async () => {
+    // Insert a new visit
+    await supabase.from("page_views").insert([{}]);
+
+    // Get total count
+    const { count } = await supabase
+      .from("page_views")
+      .select("*", { count: "exact", head: true });
+
+    setVisitorCount(count);
+  };
+  trackAndFetchVisitors();
 }, []);
 
   const handleSubmit = async (e) => {
@@ -136,7 +152,8 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-gray-400 text-sm">
-        © 2026 landr.fyi — Built for job seekers, by job seekers.
+        <p>👀 {visitorCount.toLocaleString()} visits and counting</p>
+        <p className="mt-1">© 2026 landr.fyi — Built for job seekers, by job seekers.</p>
       </footer>
     </main>
   );
