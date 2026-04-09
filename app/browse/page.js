@@ -39,8 +39,8 @@ export default function Browse() {
       {/* Nav */}
       <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto border-b">
         <a href="/" className="text-2xl font-bold text-indigo-600">landr.fyi</a>
-        <a href="/#waitlist" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
-          Join Waitlist
+        <a href="/submit" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
+          Share Yours
         </a>
       </nav>
 
@@ -103,8 +103,18 @@ export default function Browse() {
 <div key={resume.id} onClick={() => router.push(`/resume/${resume.id}`)} className="block border rounded-2xl p-6 hover:shadow-md transition cursor-pointer">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-xl font-bold">{resume.role}</h2>
-                    <p className="text-gray-500 text-sm mt-1">{resume.company_tier} · {resume.industry} · {resume.year_hired}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      {resume.company_domain && (
+                        <img
+                          src={`https://www.google.com/s2/favicons?domain=${resume.company_domain}&sz=64`}
+                          alt={resume.company_name}
+                          className="w-5 h-5 rounded object-contain"
+                          onError={(e) => e.target.style.display = "none"}
+                        />
+                      )}
+                      <h2 className="text-xl font-bold">{resume.role}</h2>
+                    </div>
+                    <p className="text-gray-500 text-sm">{resume.company_name || "Company"} · {resume.industry} · {resume.year_hired}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">

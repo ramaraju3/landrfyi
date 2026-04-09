@@ -52,10 +52,12 @@ export default function Submit() {
   const [mode, setMode] = useState("upload"); // "upload" | "paste"
   const [form, setForm] = useState({
     role: "",
-    company_tier: "",
+    company_name: "",
+    company_domain: "",
     industry: "",
     years_of_experience: "",
     year_hired: "",
+    resume_text: "",
   });
   const [pasteText, setPasteText] = useState("");
 
@@ -230,23 +232,46 @@ export default function Submit() {
         />
       </div>
 
+      {/* Company Name */}
       <div>
-        <label className="block text-sm font-medium mb-1">Company Tier</label>
-        <select
-          name="company_tier"
-          required
-          value={form.company_tier}
-          onChange={handleChange}
-          className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
-        >
-          <option value="">Select company tier</option>
-          <option value="FAANG">FAANG</option>
-          <option value="Big Tech">Big Tech</option>
-          <option value="Startup">Startup</option>
-          <option value="Consulting">Consulting</option>
-          <option value="Finance">Finance</option>
-          <option value="Other">Other</option>
-        </select>
+        <label className="block text-sm font-medium mb-1">Company</label>
+        <div className="relative flex items-center gap-3">
+          {form.company_domain && (
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${form.company_domain}&sz=64`}
+              alt={form.company_name}
+              className="w-8 h-8 rounded-md object-contain border"
+              onError={(e) => e.target.style.display = "none"}
+            />
+          )}
+          <input
+            type="text"
+            name="company_name"
+            required
+            placeholder="e.g. Google, Microsoft, McKinsey"
+            value={form.company_name}
+            onChange={async (e) => {
+              const name = e.target.value;
+              setForm(f => ({ ...f, company_name: name, company_domain: "" }));
+              if (name.length > 2) {
+                try {
+                  const res = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(name)}`);
+                  const data = await res.json();
+                  if (data && data[0]) {
+                    const domain = data[0].domain;
+                    setForm(f => ({ ...f, company_domain: domain }));
+                  }
+                } catch (err) {
+                  console.error(err);
+                }
+              }
+            }}
+            className="flex-1 border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+        </div>
+        {form.company_domain && (
+          <p className="text-xs text-gray-400 mt-1">✓ Found: {form.company_domain}</p>
+        )}
       </div>
 
       <div>
