@@ -8,7 +8,7 @@ import ShareButton from "../components/ShareButton";
 export default function Browse() {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ industry: "", company_tier: "", role: "" });
+  const [filter, setFilter] = useState({ industry: "", company_tier: "", role: "", exp_level: "" });
   const router = useRouter();
   useEffect(() => {
     fetchResumes();
@@ -21,6 +21,13 @@ export default function Browse() {
     if (filter.industry) query = query.eq("industry", filter.industry);
     if (filter.company_tier) query = query.eq("company_tier", filter.company_tier);
     if (filter.role) query = query.ilike("role", `%${filter.role}%`);
+    if (filter.exp_level) {
+      if (filter.exp_level === "no_exp") query = query.eq("years_of_experience", 0);
+      if (filter.exp_level === "early") query = query.gte("years_of_experience", 1).lte("years_of_experience", 3);
+      if (filter.exp_level === "mid") query = query.gte("years_of_experience", 4).lte("years_of_experience", 7);
+      if (filter.exp_level === "senior") query = query.gte("years_of_experience", 8).lte("years_of_experience", 12);
+      if (filter.exp_level === "staff") query = query.gte("years_of_experience", 13);
+    }
 
     const { data, error } = await query;
     if (!error) setResumes(data);
@@ -70,6 +77,18 @@ export default function Browse() {
     <option value="Big Tech">Big Tech</option>
     <option value="Startup">Startup</option>
     <option value="Consulting">Consulting</option>
+  </select>
+
+  <select
+    className="border px-4 py-2 rounded-full text-sm outline-none"
+    onChange={(e) => setFilter(f => ({ ...f, exp_level: e.target.value }))}
+  >
+    <option value="">All Experience Levels</option>
+    <option value="no_exp">No Experience (0 yrs)</option>
+    <option value="early">Early Career (1–3 yrs)</option>
+    <option value="mid">Mid Level (4–7 yrs)</option>
+    <option value="senior">Senior (8–12 yrs)</option>
+    <option value="staff">Staff / Principal (13+ yrs)</option>
   </select>
 </div>
 
