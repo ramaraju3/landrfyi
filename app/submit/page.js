@@ -83,6 +83,7 @@ export default function Submit() {
   };
 
   const [verificationSent, setVerificationSent] = useState(false);
+  const [anonymizing, setAnonymizing] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleChange = (e) =>
@@ -145,6 +146,26 @@ export default function Submit() {
     },
     [handleFile]
   );
+
+  const handleAnonymize = async () => {
+    if (!pasteText) return;
+    setAnonymizing(true);
+    try {
+      const res = await fetch("/api/anonymize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText: pasteText }),
+      });
+      const data = await res.json();
+      if (data.anonymized) {
+        setPasteText(data.anonymized);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Anonymization failed. Please try again.");
+    }
+    setAnonymizing(false);
+  };
 
   const isImage = file?.type.startsWith("image/");
   const activeText = mode === "paste" ? pasteText : extractedText;
@@ -605,10 +626,21 @@ export default function Submit() {
               {/* ── Paste mode ── */}
               {mode === "paste" && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-2">
-                    Remove your name, email, phone, LinkedIn, company names, and
-                    any identifying details before pasting.
-                  </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-xs text-gray-400">Paste your resume then click Anonymize to remove all personal info automatically.</p>
+                    <button
+                      type="button"
+                      onClick={handleAnonymize}
+                      disabled={!pasteText || anonymizing}
+                      className={`ml-4 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                        !pasteText || anonymizing
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-indigo-600 text-white hover:bg-indigo-700"
+                      }`}
+                    >
+                      {anonymizing ? "Anonymizing..." : "✨ Anonymize with AI"}
+                    </button>
+                  </div>
                   <textarea
                     name="resume_text"
                     required
