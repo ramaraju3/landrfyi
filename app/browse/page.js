@@ -71,7 +71,7 @@ export default function Browse() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {resumes.map((resume) => (
-              <div key={resume.id} className="border rounded-2xl p-6 hover:shadow-md transition">
+<a href={`/resume/${resume.id}`} key={resume.id} className="block border rounded-2xl p-6 hover:shadow-md transition cursor-pointer">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h2 className="text-xl font-bold">{resume.role}</h2>
@@ -82,7 +82,7 @@ export default function Browse() {
                   </span>
                 </div>
                 <p className="text-gray-600 text-sm leading-relaxed">{resume.resume_text}</p>
-              </div>
+              </a>
             ))}
           </div>
         )}
