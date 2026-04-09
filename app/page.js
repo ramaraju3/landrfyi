@@ -9,31 +9,16 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resumeCount, setResumeCount] = useState(0);
-  const [visitorCount, setVisitorCount] = useState(null);
 
   useEffect(() => {
-    const fetchCount = async () => {
-      const { count } = await supabase
-        .from("resumes")
-        .select("*", { count: "exact", head: true });
-      setResumeCount(count);
-    };
-    fetchCount();
-  }, []);
-
-  useEffect(() => {
-    const trackAndFetch = async () => {
-      if (!localStorage.getItem("landrfyi_visited")) {
-        const { error } = await supabase.from("page_views").insert([{}]);
-        if (!error) localStorage.setItem("landrfyi_visited", "1");
-      }
-      const { count } = await supabase
-        .from("page_views")
-        .select("*", { count: "exact", head: true });
-      setVisitorCount(count);
-    };
-    trackAndFetch();
-  }, []);
+  const fetchCount = async () => {
+    const { count } = await supabase
+      .from("resumes")
+      .select("*", { count: "exact", head: true });
+    setResumeCount(count);
+  };
+  fetchCount();
+}, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -151,10 +136,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-gray-400 text-sm">
-        <p>© 2026 landr.fyi — Built for job seekers, by job seekers.</p>
-        {visitorCount !== null && (
-          <p className="mt-1">{visitorCount.toLocaleString()} unique visitors</p>
-        )}
+        © 2026 landr.fyi — Built for job seekers, by job seekers.
       </footer>
     </main>
   );
