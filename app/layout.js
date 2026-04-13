@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "landr.fyi — See the resumes that actually got people hired",
   description: "A community-driven library of real, anonymized resumes from people who landed the job. No more guessing what the bar looks like.",
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>",
+  },
 };
 
 export default function RootLayout({ children }) {
