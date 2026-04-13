@@ -18,7 +18,19 @@ export default function ProfilePage() {
       setUser(session.user);
       fetchResumes(session.user.id);
     };
+
     getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        window.location.href = "/login";
+      } else if (session) {
+        setUser(session.user);
+        fetchResumes(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchResumes = async (userId) => {
