@@ -49,6 +49,6 @@ ${resumeText}`,
     return NextResponse.json({ anonymized });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to anonymize resume" }, { status: 500 });
+    return NextResponse.json({ error: "Anonymization temporarily unavailable. Please try again in a moment." }, { status: 500 });
   }
 }

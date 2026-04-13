@@ -84,6 +84,8 @@ export default function Submit() {
 
   const [verificationSent, setVerificationSent] = useState(false);
   const [anonymizing, setAnonymizing] = useState(false);
+  const [showAnonymizePreview, setShowAnonymizePreview] = useState(false);
+  const [anonymizedPreview, setAnonymizedPreview] = useState("");
   const fileInputRef = useRef(null);
 
   const handleChange = (e) =>
@@ -148,23 +150,37 @@ export default function Submit() {
   );
 
   const handleAnonymize = async () => {
-    if (!pasteText) return;
+    const textToAnonymize = form.resume_text || extractedText;
+    if (!textToAnonymize) return;
     setAnonymizing(true);
     try {
       const res = await fetch("/api/anonymize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: pasteText }),
+        body: JSON.stringify({ resumeText: textToAnonymize }),
       });
       const data = await res.json();
       if (data.anonymized) {
-        setPasteText(data.anonymized);
+        setAnonymizedPreview(data.anonymized);
+        setShowAnonymizePreview(true);
       }
     } catch (err) {
       console.error(err);
-      alert("Anonymization failed. Please try again.");
+      const errorMsg = err?.message || "Anonymization temporarily unavailable. Please try again in a moment.";
+      alert(errorMsg);
     }
     setAnonymizing(false);
+  };
+
+  const acceptAnonymized = () => {
+    setForm(f => ({ ...f, resume_text: anonymizedPreview }));
+    if (typeof setExtractedText === "function") setExtractedText(anonymizedPreview);
+    setShowAnonymizePreview(false);
+  };
+
+  const rejectAnonymized = () => {
+    setShowAnonymizePreview(false);
+    setAnonymizedPreview("");
   };
 
   const isImage = file?.type.startsWith("image/");
@@ -588,6 +604,28 @@ export default function Submit() {
                         </div>
                       )}
 
+                      {/* Anonymize uploaded file text */}
+                      {file && (extractedText || form.resume_text) && !extracting && (
+                        <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Text extracted successfully</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Anonymize before displaying as text</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleAnonymize}
+                            disabled={anonymizing}
+                            className={`ml-4 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                              anonymizing
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-indigo-600 text-white hover:bg-indigo-700"
+                            }`}
+                          >
+                            {anonymizing ? "Anonymizing..." : "✨ Anonymize with AI"}
+                          </button>
+                        </div>
+                      )}
+
                       {/* Display preference */}
                       {file && (
                         <div>
@@ -678,6 +716,36 @@ export default function Submit() {
           </form>
         )}
       </div>
+      {showAnonymizePreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Review Anonymized Resume</h2>
+                <p className="text-gray-400 text-sm mt-0.5">Check that all personal info has been removed</p>
+              </div>
+              <button onClick={rejectAnonymized} className="text-gray-400 hover:text-gray-600 text-2xl font-light">×</button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">{anonymizedPreview}</pre>
+            </div>
+            <div className="px-6 py-4 border-t flex gap-3 justify-end">
+              <button
+                onClick={rejectAnonymized}
+                className="px-5 py-2 rounded-full border text-gray-500 text-sm font-medium hover:border-gray-400 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={acceptAnonymized}
+                className="px-5 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
+              >
+                ✅ Looks good, use this
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
