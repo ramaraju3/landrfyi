@@ -48,7 +48,9 @@ ${resumeText}`,
     const anonymized = message.content[0].text;
     return NextResponse.json({ anonymized });
   } catch (error) {
-    console.error(error);
+    console.error("Anonymize error:", JSON.stringify(error, null, 2));
+    console.error("API Key exists:", !!process.env.ANTHROPIC_API_KEY);
+    console.error("API Key prefix:", process.env.ANTHROPIC_API_KEY?.substring(0, 10));
     return NextResponse.json({ error: "Anonymization temporarily unavailable. Please try again in a moment." }, { status: 500 });
   }
 }

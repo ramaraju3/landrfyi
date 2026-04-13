@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 
 const ACCEPTED_MIME_TYPES = new Set([
@@ -159,7 +159,8 @@ export default function Submit() {
   );
 
   const handleAnonymize = async () => {
-    const textToAnonymize = form.resume_text || extractedText;
+    console.log("Anonymize clicked, text length:", (form.resume_text || extractedText)?.length);
+    const textToAnonymize = pasteText || form.resume_text || extractedText;
     if (!textToAnonymize) return;
     setAnonymizing(true);
     try {
@@ -205,6 +206,7 @@ export default function Submit() {
 
   const acceptAnonymized = () => {
     setForm(f => ({ ...f, resume_text: anonymizedPreview }));
+    setPasteText(anonymizedPreview);
     if (typeof setExtractedText === "function") setExtractedText(anonymizedPreview);
     setShowAnonymizePreview(false);
   };
