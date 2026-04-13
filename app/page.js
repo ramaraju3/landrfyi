@@ -39,16 +39,19 @@ export default function Home() {
       <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto">
         <span className="text-2xl font-bold text-indigo-600">landr.fyi</span>
         <div className="flex items-center gap-4">
-        <a href="/browse" className="text-sm text-gray-500 hover:text-indigo-600 transition">
-        Browse Resumes
-      </a>
-      <a href="/submit" className="text-sm text-gray-500 hover:text-indigo-600 transition">
-      Share Yours
-      </a>
-      <a href="/browse" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
-        Browse Resumes
-      </a>
-      </div>
+          <a href="/browse" className="text-sm text-gray-500 hover:text-indigo-600 transition">
+            Browse Resumes
+          </a>
+          <a href="/submit" className="text-sm text-gray-500 hover:text-indigo-600 transition">
+            Share Yours
+          </a>
+          <a href="/login" className="text-sm text-gray-500 hover:text-indigo-600 transition">
+            Sign in
+          </a>
+          <a href="/browse" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
+            Browse Resumes
+          </a>
+        </div>
     </nav>
 
       {/* Hero */}

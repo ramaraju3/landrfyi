@@ -39,9 +39,14 @@ export default function Browse() {
       {/* Nav */}
       <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto border-b">
         <a href="/" className="text-2xl font-bold text-indigo-600">landr.fyi</a>
-        <a href="/submit" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
-          Share Yours
-        </a>
+        <div className="flex items-center gap-4">
+          <a href="/login" className="text-sm text-gray-500 hover:text-indigo-600 transition">
+            Sign in
+          </a>
+          <a href="/submit" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
+            Share Yours
+          </a>
+        </div>
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-12">

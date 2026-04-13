@@ -86,7 +86,16 @@ export default function Submit() {
   const [anonymizing, setAnonymizing] = useState(false);
   const [showAnonymizePreview, setShowAnonymizePreview] = useState(false);
   const [anonymizedPreview, setAnonymizedPreview] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) setCurrentUser(session.user);
+    };
+    getUser();
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -154,20 +163,42 @@ export default function Submit() {
     if (!textToAnonymize) return;
     setAnonymizing(true);
     try {
-      const res = await fetch("/api/anonymize", {
+      // Use PDF anonymizer if file is a PDF and display mode is "file"
+      const isPDF = file && file.type === "application/pdf" && displayMode === "file";
+      const endpoint = isPDF ? "/api/anonymize-pdf" : "/api/anonymize";
+      const body = isPDF
+        ? { resumeText: textToAnonymize, fileName: file.name }
+        : { resumeText: textToAnonymize };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: textToAnonymize }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (data.anonymized) {
+
+      if (isPDF && data.pdfBase64) {
+        // Convert base64 to blob and create a new file
+        const byteCharacters = atob(data.pdfBase64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: "application/pdf" });
+        const anonymizedFile = new File([blob], data.fileName, { type: "application/pdf" });
+        setFile(anonymizedFile);
+        setAnonymizedPreview(data.anonymizedText);
+        setShowAnonymizePreview(true);
+      } else if (data.anonymized) {
         setAnonymizedPreview(data.anonymized);
         setShowAnonymizePreview(true);
+      } else {
+        alert(data.error || "Anonymization failed. Please try again.");
       }
     } catch (err) {
       console.error(err);
-      const errorMsg = err?.message || "Anonymization temporarily unavailable. Please try again in a moment.";
-      alert(errorMsg);
+      alert("Anonymization temporarily unavailable. Please try again in a moment.");
     }
     setAnonymizing(false);
   };
@@ -260,6 +291,7 @@ export default function Submit() {
         display_mode: fileUrl ? displayMode : "text",
         years_of_experience: parseInt(form.years_of_experience),
         year_hired: parseInt(form.year_hired),
+        user_id: currentUser ? currentUser.id : null,
       },
     ]);
 
