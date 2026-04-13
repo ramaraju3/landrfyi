@@ -9,10 +9,11 @@ export default function Browse() {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ industry: "", company_tier: "", role: "", exp_level: "" });
+  const [sortBy, setSortBy] = useState("created_at");
   const router = useRouter();
   useEffect(() => {
     fetchResumes();
-  }, [filter]);
+  }, [filter, sortBy]);
 
   const fetchResumes = async () => {
     setLoading(true);
@@ -29,6 +30,7 @@ export default function Browse() {
       if (filter.exp_level === "staff") query = query.gte("years_of_experience", 13);
     }
 
+    query = query.order(sortBy, { ascending: false });
     const { data, error } = await query;
     if (!error) setResumes(data);
     setLoading(false);
@@ -95,6 +97,21 @@ export default function Browse() {
     <option value="senior">Senior (8–12 yrs)</option>
     <option value="staff">Staff / Principal (13+ yrs)</option>
   </select>
+
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={() => setSortBy("created_at")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${sortBy === "created_at" ? "bg-indigo-600 text-white" : "border text-gray-500 hover:border-indigo-300"}`}
+            >
+              🕒 Newest
+            </button>
+            <button
+              onClick={() => setSortBy("view_count")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${sortBy === "view_count" ? "bg-indigo-600 text-white" : "border text-gray-500 hover:border-indigo-300"}`}
+            >
+              🔥 Most Viewed
+            </button>
+          </div>
 </div>
 
         {/* Resume Cards */}

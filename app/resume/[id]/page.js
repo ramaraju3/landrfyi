@@ -19,6 +19,8 @@ export default function ResumePage() {
         .single();
 
       if (!error) setResume(data);
+      // Increment view count
+      await supabase.rpc("increment_view_count", { resume_id: id });
       setLoading(false);
     };
 
