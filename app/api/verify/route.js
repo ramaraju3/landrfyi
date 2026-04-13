@@ -25,7 +25,7 @@ export async function POST(request) {
 
     // Send verification email
     await resend.emails.send({
-      from: "landr.fyi <verify@landr.fyi>",
+      from: "landr.fyi <verify@mg.landr.fyi>",
       to: workEmail,
       subject: "Verify your resume submission on landr.fyi",
       html: `
