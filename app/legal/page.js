@@ -65,7 +65,7 @@ export default function Legal() {
               <h3 className="font-semibold text-gray-900 mb-2">1. Information We Collect</h3>
               <p>We collect the following information:</p>
               <ul className="list-disc ml-6 mt-2 space-y-1">
-                <li>Email addresses submitted via our waitlist form</li>
+                <li>Email addresses when you create an account or verify a resume submission</li>
                 <li>Resume content submitted by users</li>
                 <li>Anonymous page view data for analytics purposes</li>
               </ul>
@@ -73,7 +73,7 @@ export default function Legal() {
 
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">2. How We Use Your Information</h3>
-              <p>Email addresses are used solely to notify you when new features are available. We do not sell, rent, or share your email address with third parties. Resume content is displayed publicly on the platform for reference purposes.</p>
+              <p>Email addresses are used solely for account authentication and resume verification purposes. We do not sell, rent, or share your email address with third parties. Resume content is displayed publicly on the platform for reference purposes.</p>
             </div>
 
             <div>
