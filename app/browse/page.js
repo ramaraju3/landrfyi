@@ -40,7 +40,7 @@ export default function Browse() {
     <main className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
       <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto border-b">
-        <a href="/" className="text-2xl font-bold text-indigo-600">landr.fyi</a>
+        <a href="/" className="text-3xl font-bold text-indigo-600">landr.fyi</a>
         <div className="flex items-center gap-4">
           <a href="/login" className="text-sm text-gray-500 hover:text-indigo-600 transition">
             Sign in

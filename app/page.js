@@ -37,7 +37,7 @@ export default function Home() {
     <main className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
       <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto">
-        <span className="text-2xl font-bold text-indigo-600">landr.fyi</span>
+        <span className="text-3xl font-bold text-indigo-600">landr.fyi</span>
         <div className="flex items-center gap-4">
           <a href="/browse" className="text-sm text-gray-500 hover:text-indigo-600 transition">
             Browse Resumes

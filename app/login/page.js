@@ -33,7 +33,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto border-b">
-        <a href="/" className="text-2xl font-bold text-indigo-600">landr.fyi</a>
+        <a href="/" className="text-3xl font-bold text-indigo-600">landr.fyi</a>
       </nav>
 
       <div className="max-w-md mx-auto px-6 py-20">
