@@ -411,6 +411,16 @@ export default function Submit() {
           <option value="Finance">Finance</option>
           <option value="Consulting">Consulting</option>
           <option value="Healthcare">Healthcare</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Sales">Sales</option>
+          <option value="Legal">Legal</option>
+          <option value="Education">Education</option>
+          <option value="Government">Government</option>
+          <option value="Nonprofit">Nonprofit</option>
+          <option value="Real Estate">Real Estate</option>
+          <option value="Manufacturing">Manufacturing</option>
+          <option value="Retail">Retail</option>
+          <option value="Media">Media</option>
           <option value="Other">Other</option>
         </select>
       </div>

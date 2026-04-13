@@ -8,7 +8,7 @@ import ShareButton from "../components/ShareButton";
 export default function Browse() {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ industry: "", company_tier: "", role: "", exp_level: "" });
+  const [filter, setFilter] = useState({ industry: "", role: "", exp_level: "" });
   const [sortBy, setSortBy] = useState("created_at");
   const router = useRouter();
   useEffect(() => {
@@ -20,8 +20,9 @@ export default function Browse() {
     let query = supabase.from("resumes").select("*");
 
     if (filter.industry) query = query.eq("industry", filter.industry);
-    if (filter.company_tier) query = query.eq("company_tier", filter.company_tier);
-    if (filter.role) query = query.ilike("role", `%${filter.role}%`);
+if (filter.role) {
+      query = query.or(`role.ilike.%${filter.role}%,company_name.ilike.%${filter.role}%`);
+    }
     if (filter.exp_level) {
       if (filter.exp_level === "no_exp") query = query.eq("years_of_experience", 0);
       if (filter.exp_level === "early") query = query.gte("years_of_experience", 1).lte("years_of_experience", 3);
@@ -59,7 +60,7 @@ export default function Browse() {
 <div className="flex gap-4 mb-10 flex-wrap">
   <input
     type="text"
-    placeholder="Search by role..."
+    placeholder="Search by role or company..."
     className="border px-4 py-2 rounded-full text-sm outline-none flex-1 min-w-48"
     onChange={(e) => setFilter(f => ({ ...f, role: e.target.value }))}
   />
@@ -73,17 +74,17 @@ export default function Browse() {
     <option value="Finance">Finance</option>
     <option value="Consulting">Consulting</option>
     <option value="Healthcare">Healthcare</option>
-  </select>
-
-  <select
-    className="border px-4 py-2 rounded-full text-sm outline-none"
-    onChange={(e) => setFilter(f => ({ ...f, company_tier: e.target.value }))}
-  >
-    <option value="">All Company Tiers</option>
-    <option value="FAANG">FAANG</option>
-    <option value="Big Tech">Big Tech</option>
-    <option value="Startup">Startup</option>
-    <option value="Consulting">Consulting</option>
+    <option value="Marketing">Marketing</option>
+    <option value="Sales">Sales</option>
+    <option value="Legal">Legal</option>
+    <option value="Education">Education</option>
+    <option value="Government">Government</option>
+    <option value="Nonprofit">Nonprofit</option>
+    <option value="Real Estate">Real Estate</option>
+    <option value="Manufacturing">Manufacturing</option>
+    <option value="Retail">Retail</option>
+    <option value="Media">Media</option>
+    <option value="Other">Other</option>
   </select>
 
   <select
