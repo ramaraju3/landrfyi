@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-const SibApiV3Sdk = require("@getbrevo/brevo");
+import * as SibApiV3Sdk from "@getbrevo/brevo";
 
 export async function POST(request) {
   try {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-const SibApiV3Sdk = require("@getbrevo/brevo");
+import * as SibApiV3Sdk from "@getbrevo/brevo";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
