@@ -6,6 +6,11 @@ import { supabase } from "../lib/supabase";
 export default function Home() {
   const [resumeCount, setResumeCount] = useState(0);
   const [visitorCount, setVisitorCount] = useState(0);
+  const [feedback, setFeedback] = useState({ name: "", email: "", message: "" });
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState("");
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   useEffect(() => {
   const fetchCount = async () => {
@@ -33,6 +38,31 @@ export default function Home() {
 }, []);
 
 
+  const handleFeedback = async (e) => {
+    e.preventDefault();
+    setFeedbackLoading(true);
+    setFeedbackError("");
+
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedback),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeedbackSubmitted(true);
+        setShowFeedbackModal(false);
+        setFeedback({ name: "", email: "", message: "" });
+      } else {
+        setFeedbackError(data.error || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      setFeedbackError("Something went wrong. Please try again.");
+    }
+    setFeedbackLoading(false);
+  };
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
@@ -48,6 +78,12 @@ export default function Home() {
           <a href="/login" className="text-sm text-gray-500 hover:text-indigo-600 transition">
             Sign in
           </a>
+          <button
+            onClick={() => setShowFeedbackModal(true)}
+            className="text-sm text-gray-500 hover:text-indigo-600 transition"
+          >
+            💬 Feedback
+          </button>
           <a href="/browse" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
             Browse Resumes
           </a>
@@ -116,6 +152,51 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Feedback Section */}
+      <section className="py-16 px-6 max-w-2xl mx-auto text-center">
+        <h2 className="text-2xl font-bold mb-2">Have feedback or found a bug?</h2>
+        <p className="text-gray-500 mb-8">We're actively improving landr.fyi. Let us know what you think.</p>
+        {feedbackSubmitted ? (
+          <p className="text-green-500 font-medium">✅ Thanks for your feedback!</p>
+        ) : (
+          <form onSubmit={handleFeedback} className="flex flex-col gap-4 text-left">
+            <div className="flex gap-4">
+              <input
+                type="text"
+                placeholder="Your name (optional)"
+                value={feedback.name}
+                onChange={(e) => setFeedback(f => ({ ...f, name: e.target.value }))}
+                className="flex-1 border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <input
+                type="email"
+                required
+                placeholder="Your email"
+                value={feedback.email}
+                onChange={(e) => setFeedback(f => ({ ...f, email: e.target.value }))}
+                className="flex-1 border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+            </div>
+            <textarea
+              required
+              rows={4}
+              placeholder="What's on your mind? Bug reports, feature requests, general feedback..."
+              value={feedback.message}
+              onChange={(e) => setFeedback(f => ({ ...f, message: e.target.value }))}
+              className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+            />
+            {feedbackError && <p className="text-red-400 text-sm">{feedbackError}</p>}
+            <button
+              type="submit"
+              disabled={feedbackLoading}
+              className="bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-indigo-700 transition"
+            >
+              {feedbackLoading ? "Sending..." : "Send Feedback"}
+            </button>
+          </form>
+        )}
+      </section>
+
       {/* Footer */}
       <footer className="text-center py-8 text-gray-400 text-sm">
         <p>👀 {visitorCount.toLocaleString()} visits and counting</p>
@@ -124,6 +205,54 @@ export default function Home() {
           <a href="/legal" className="hover:text-indigo-600 transition">Terms · Privacy · Disclaimer</a>
         </p>
       </footer>
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Send Feedback</h2>
+              <button onClick={() => setShowFeedbackModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl font-light">×</button>
+            </div>
+            {feedbackSubmitted ? (
+              <p className="text-green-500 font-medium text-center py-8">✅ Thanks for your feedback!</p>
+            ) : (
+              <form onSubmit={handleFeedback} className="flex flex-col gap-4">
+                <input
+                  type="text"
+                  placeholder="Your name (optional)"
+                  value={feedback.name}
+                  onChange={(e) => setFeedback(f => ({ ...f, name: e.target.value }))}
+                  className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder="Your email"
+                  value={feedback.email}
+                  onChange={(e) => setFeedback(f => ({ ...f, email: e.target.value }))}
+                  className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="What's on your mind? Bug reports, feature requests, general feedback..."
+                  value={feedback.message}
+                  onChange={(e) => setFeedback(f => ({ ...f, message: e.target.value }))}
+                  className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+                />
+                {feedbackError && <p className="text-red-400 text-sm">{feedbackError}</p>}
+                <button
+                  type="submit"
+                  disabled={feedbackLoading}
+                  className="bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-indigo-700 transition"
+                >
+                  {feedbackLoading ? "Sending..." : "Send Feedback"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
