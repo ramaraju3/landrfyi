@@ -1,48 +1,387 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FileText,
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  Eye,
+  Award,
+  MessageSquare,
+} from "lucide-react";
 import { supabase } from "../lib/supabase";
 
-export default function Home() {
-  const [resumeCount, setResumeCount] = useState(0);
-  const [visitorCount, setVisitorCount] = useState(0);
+/* ------------------------------------------------------------------ */
+/* Resume data                                                         */
+/* ------------------------------------------------------------------ */
+
+const RESUMES = [
+  {
+    role: "Senior Product Manager",
+    badge: "Hired at Google",
+    experience: "8 yrs",
+    year: "2021",
+    positions: [
+      {
+        title: "Lead PM, Growth", years: "2019–2021",
+        bullets: [
+          "Owned activation funnel; shipped onboarding redesign that lifted D7 retention 22% (n=3.4M users)",
+          "Managed cross-functional team of 9; partnered with Eng/Design/DS on quarterly roadmap",
+          "Launched paid referral loop generating $4.1M incremental ARR",
+        ],
+      },
+      {
+        title: "Senior PM", years: "2017–2019",
+        bullets: [
+          "Drove pricing experiment (15 cells) that increased ARPU 11% with no churn impact",
+          "Shipped self-serve checkout in 4 markets, reducing time-to-purchase by 38%",
+        ],
+      },
+    ],
+    skills: "Product Strategy · Experimentation · SQL · Roadmapping · 0→1 · Growth",
+    edu: "B.S. Computer Science · 2013",
+  },
+  {
+    role: "Software Engineer",
+    badge: "Hired at Stripe",
+    experience: "5 yrs",
+    year: "2023",
+    positions: [
+      {
+        title: "Senior SWE, Payments Infra", years: "2021–2023",
+        bullets: [
+          "Led redesign of payment retry logic; reduced failed transaction rate by 18% across 40M monthly users",
+          "Built internal rate-limiting framework adopted by 12 teams; cut incident rate by 30%",
+          "Mentored 3 junior engineers; all promoted within 18 months",
+        ],
+      },
+      {
+        title: "Software Engineer", years: "2019–2021",
+        bullets: [
+          "Shipped Stripe Billing's proration engine rewrite, handling $2B+ in annual recurring revenue",
+          "Reduced p99 API latency by 40ms through query optimization and caching layer",
+        ],
+      },
+    ],
+    skills: "Go · TypeScript · Postgres · Distributed Systems · gRPC · Kafka",
+    edu: "B.S. Computer Science · 2018",
+  },
+  {
+    role: "Senior UX Designer",
+    badge: "Hired at Airbnb",
+    experience: "6 yrs",
+    year: "2022",
+    positions: [
+      {
+        title: "Senior UX Designer, Hosting", years: "2020–2022",
+        bullets: [
+          "Redesigned host onboarding flow; increased listing completion rate by 34% (n=1.2M hosts)",
+          "Led design system contribution adding 40+ components adopted by 8 product teams",
+          "Ran 20+ usability studies; translated findings into a 22% reduction in support tickets",
+        ],
+      },
+      {
+        title: "UX Designer", years: "2017–2020",
+        bullets: [
+          "Owned mobile search experience redesign; drove 15% uplift in booking conversion",
+          "Collaborated with Research to map 6 traveler personas used across the design org",
+        ],
+      },
+    ],
+    skills: "Figma · Prototyping · Design Systems · User Research · Accessibility",
+    edu: "B.F.A. Interaction Design · 2016",
+  },
+  {
+    role: "Data Scientist",
+    badge: "Hired at Netflix",
+    experience: "4 yrs",
+    year: "2023",
+    positions: [
+      {
+        title: "Senior Data Scientist, Recommendations", years: "2021–2023",
+        bullets: [
+          "Built next-watch recommendation model improving avg watch time by 9 min/week per subscriber",
+          "Designed A/B framework for content ranking tests, running 30+ experiments per quarter",
+          "Reduced model retraining time by 60% via pipeline refactor serving 230M subscribers",
+        ],
+      },
+      {
+        title: "Data Scientist", years: "2020–2021",
+        bullets: [
+          "Developed churn propensity model with 84% precision; informed $12M retention campaign",
+          "Partnered with engineering to productionize 4 ML models into real-time serving",
+        ],
+      },
+    ],
+    skills: "Python · PyTorch · Spark · SQL · A/B Testing · Statistical Modeling",
+    edu: "M.S. Statistics · 2019",
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+function FadeIn({ children, delay = 0, className = "" }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Button({ children, href, variant = "primary", size = "md", className = "", onClick }) {
+  const base = "inline-flex items-center justify-center font-medium rounded-full transition-all whitespace-nowrap";
+  const sizes = { md: "h-10 px-5 text-sm", lg: "h-14 px-8 text-base" };
+  const variants = {
+    primary: "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-lg hover:opacity-90",
+    outline: "border border-[hsl(var(--border))] bg-[hsl(var(--background))]/50 backdrop-blur text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]/50",
+    ghost: "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]/50",
+    link: "text-[hsl(var(--primary))] font-semibold hover:underline",
+  };
+  const cls = `${base} ${sizes[size]} ${variants[variant]} ${className}`;
+  if (onClick) return <button onClick={onClick} className={cls}>{children}</button>;
+  return <Link href={href} className={cls}>{children}</Link>;
+}
+
+function Badge({ children, className = "" }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>
+      {children}
+    </span>
+  );
+}
+
+function Card({ children, className = "", style }) {
+  return (
+    <div
+      className={`rounded-xl border border-[hsl(var(--border))]/60 bg-[hsl(var(--card))] ${className}`}
+      style={style}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Nav                                                                 */
+/* ------------------------------------------------------------------ */
+
+function Nav({ onFeedback }) {
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[hsl(var(--background))]/80 backdrop-blur-md border-b border-[hsl(var(--border))]/50">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group">
+          <FileText className="w-5 h-5 text-[hsl(var(--primary))]" />
+          <span className="font-serif font-bold text-xl tracking-tight">landr.fyi</span>
+        </Link>
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="/browse" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
+            Browse Resumes
+          </Link>
+          <Link href="#how-it-works" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
+            How it works
+          </Link>
+          <Link href="/submit" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
+            Submit
+          </Link>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onFeedback}
+            className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors hidden sm:flex items-center gap-1.5"
+          >
+            <MessageSquare className="w-4 h-4" /> Feedback
+          </button>
+          <Link href="/login" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors hidden sm:block">
+            Sign in
+          </Link>
+          <Button href="/browse" size="md">Browse Resumes</Button>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Resume card mock                                                    */
+/* ------------------------------------------------------------------ */
+
+function ResumeCard({ data, className = "", style }) {
+  return (
+    <Card className={`w-full max-w-lg shadow-xl overflow-hidden ${className}`} style={style}>
+      <div className="p-8 sm:p-10 flex flex-col gap-6">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-2">
+            <div className="w-48 h-8 bg-[hsl(var(--muted))]/80 rounded-md" />
+            <div className="text-[hsl(var(--muted-foreground))] font-medium text-sm sm:text-base flex items-center gap-2">
+              {data.role} <span className="text-[hsl(var(--muted-foreground))]/50">·</span> {data.experience} experience
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-semibold py-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {data.badge}
+            </Badge>
+            <span className="text-xs text-[hsl(var(--muted-foreground))] font-medium">{data.year}</span>
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-[hsl(var(--border))]/50 my-2" />
+
+        <div className="space-y-6">
+          {data.positions.map((pos, pi) => (
+            <div key={pi} className="space-y-3">
+              <div className="flex justify-between items-baseline">
+                <h4 className="font-semibold text-[15px]">{pos.title}</h4>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 h-4 bg-[hsl(var(--muted))]/60 rounded-sm inline-block" />
+                  <span className="text-xs text-[hsl(var(--muted-foreground))]">{pos.years}</span>
+                </div>
+              </div>
+              <ul className="space-y-2">
+                {pos.bullets.map((b, bi) => (
+                  <li key={bi} className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed flex items-start gap-2">
+                    <span className="text-[hsl(var(--primary))]/60 mt-0.5">·</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="w-full h-px bg-[hsl(var(--border))]/50 my-2" />
+
+        <div className="space-y-4">
+          <div>
+            <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-2 block">Skills</span>
+            <div className="text-sm font-medium">{data.skills}</div>
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-2 block">Education</span>
+            <div className="text-sm text-[hsl(var(--muted-foreground))]">{data.edu}</div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function SwipeableResumeStack() {
+  const [{ current, direction }, setState] = useState({ current: 0, direction: 0 });
+  const total = RESUMES.length;
+
+  const go = (dir) => setState(prev => ({
+    current: (prev.current + 1) % total,
+    direction: dir,
+  }));
+
+  const variants = {
+    enter: { opacity: 0, scale: 0.95 },
+    center: { opacity: 1, scale: 1, x: 0, rotate: 0 },
+    exit: (dir) => ({ x: dir * 450, opacity: 0, rotate: dir * 12, transition: { duration: 0.35 } }),
+  };
+
+  const next1 = (current + 1) % total;
+  const next2 = (current + 2) % total;
+
+  return (
+    <div className="relative w-full h-[600px] flex items-center justify-center select-none">
+      {/* Back cards (decorative) */}
+      <div className="absolute inset-0 transform translate-x-8 -translate-y-8 rotate-6 scale-95 opacity-30 blur-[1px] pointer-events-none">
+        <ResumeCard data={RESUMES[next2]} />
+      </div>
+      <div className="absolute inset-0 transform translate-x-4 -translate-y-4 rotate-3 scale-[0.98] opacity-60 pointer-events-none">
+        <ResumeCard data={RESUMES[next1]} />
+      </div>
+
+      {/* Front card — draggable */}
+      <AnimatePresence custom={direction} mode="popLayout">
+        <motion.div
+          key={current}
+          className="absolute inset-0 cursor-grab active:cursor-grabbing"
+          custom={direction}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.7}
+          onDragEnd={(_, { offset, velocity }) => {
+            if (offset.x > 80 || velocity.x > 400) go(1);
+            else if (offset.x < -80 || velocity.x < -400) go(-1);
+          }}
+          whileDrag={{ scale: 1.02 }}
+        >
+          <ResumeCard data={RESUMES[current]} className="shadow-2xl shadow-[hsl(var(--primary))]/10" />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Dots + swipe hint */}
+      <div className="absolute -bottom-8 left-0 right-0 flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2">
+          {RESUMES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setState({ current: i, direction: i > current ? 1 : -1 })}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? "w-6 bg-[hsl(var(--primary))]" : "w-1.5 bg-[hsl(var(--muted-foreground))]/30"}`}
+            />
+          ))}
+        </div>
+        <p className="text-xs text-[hsl(var(--muted-foreground))]/60">swipe to browse</p>
+      </div>
+    </div>
+  );
+}
+
+function MiniResumeThumbnail({ role, company, years }) {
+  return (
+    <Card className="p-4 sm:p-5 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-[hsl(var(--card))]/50 backdrop-blur-sm">
+      <div className="flex flex-col gap-3">
+        <div className="w-16 h-3 bg-[hsl(var(--muted))] rounded" />
+        <div className="space-y-1">
+          <h5 className="font-semibold text-sm">{role}</h5>
+          <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
+            <Badge className="border border-[hsl(var(--border))] text-[10px] py-0 font-normal px-1.5">{company}</Badge>
+            <span>{years}</span>
+          </div>
+        </div>
+        <div className="space-y-1.5 mt-2">
+          <div className="w-full h-1.5 bg-[hsl(var(--muted))]/50 rounded" />
+          <div className="w-5/6 h-1.5 bg-[hsl(var(--muted))]/50 rounded" />
+          <div className="w-4/6 h-1.5 bg-[hsl(var(--muted))]/50 rounded" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Feedback modal                                                      */
+/* ------------------------------------------------------------------ */
+
+function FeedbackModal({ onClose }) {
   const [feedback, setFeedback] = useState({ name: "", email: "", message: "" });
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const [feedbackLoading, setFeedbackLoading] = useState(false);
-  const [feedbackError, setFeedbackError] = useState("");
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-  const fetchCount = async () => {
-    const { count } = await supabase
-      .from("resumes")
-      .select("*", { count: "exact", head: true });
-    setResumeCount(count);
-  };
-  fetchCount();
-}, []);
-
-  useEffect(() => {
-  const trackAndFetchVisitors = async () => {
-    // Insert a new visit
-    await supabase.from("page_views").insert([{}]);
-
-    // Get total count
-    const { count } = await supabase
-      .from("page_views")
-      .select("*", { count: "exact", head: true });
-
-    setVisitorCount(count);
-  };
-  trackAndFetchVisitors();
-}, []);
-
-
-  const handleFeedback = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setFeedbackLoading(true);
-    setFeedbackError("");
-
+    setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/feedback", {
         method: "POST",
@@ -51,208 +390,358 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.success) {
-        setFeedbackSubmitted(true);
-        setShowFeedbackModal(false);
+        setSubmitted(true);
         setFeedback({ name: "", email: "", message: "" });
       } else {
-        setFeedbackError(data.error || "Something went wrong. Please try again.");
+        setError(data.error || "Something went wrong. Please try again.");
       }
-    } catch (err) {
-      setFeedbackError("Something went wrong. Please try again.");
+    } catch {
+      setError("Something went wrong. Please try again.");
     }
-    setFeedbackLoading(false);
+    setLoading(false);
   };
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      {/* Nav */}
-      <nav className="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto">
-        <span className="text-3xl font-bold text-indigo-600">landr.fyi</span>
-        <div className="flex items-center gap-4">
-          <a href="/browse" className="text-sm text-gray-500 hover:text-indigo-600 transition">
-            Browse Resumes
-          </a>
-          <a href="/submit" className="text-sm text-gray-500 hover:text-indigo-600 transition">
-            Share Yours
-          </a>
-          <a href="/login" className="text-sm text-gray-500 hover:text-indigo-600 transition">
-            Sign in
-          </a>
-          <button
-            onClick={() => setShowFeedbackModal(true)}
-            className="text-sm text-gray-500 hover:text-indigo-600 transition"
-          >
-            💬 Feedback
-          </button>
-          <a href="/browse" className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 transition">
-            Browse Resumes
-          </a>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" onClick={onClose}>
+      <div
+        className="bg-[hsl(var(--card))] rounded-2xl max-w-lg w-full p-8 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold font-serif">Send Feedback</h2>
+          <button onClick={onClose} className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] text-2xl font-light leading-none">×</button>
         </div>
-    </nav>
-
-      {/* Hero */}
-      <section className="text-center px-6 py-28 max-w-4xl mx-auto">
-        <h1 className="text-5xl font-extrabold leading-tight mb-6">
-          See the resumes that <span className="text-indigo-600">actually got people hired.</span>
-        </h1>
-        <p className="text-xl text-gray-500 mb-4 max-w-2xl mx-auto">
-  landr.fyi is a community-driven library of real, anonymized resumes from people who landed the job. No more guessing what the bar looks like.
-</p>
-<p className="text-indigo-600 font-semibold text-lg mb-10">
-  🗂 {resumeCount} resumes shared so far
-</p>
-        <a href="/browse" className="bg-indigo-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-indigo-700 transition">
-          Browse Resumes
-        </a>
-      </section>
-
-      {/* How it works */}
-      <section className="bg-gray-50 py-24 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-16">How it works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div>
-              <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-semibold mb-2">You land the job</h3>
-              <p className="text-gray-500">You worked hard and got the offer. Congrats.</p>
-            </div>
-            <div>
-              <div className="text-5xl mb-4">📄</div>
-              <h3 className="text-xl font-semibold mb-2">You share your resume</h3>
-              <p className="text-gray-500">We strip out your name, company details, and anything personally identifiable.</p>
-            </div>
-            <div>
-              <div className="text-5xl mb-4">🚀</div>
-              <h3 className="text-xl font-semibold mb-2">Community levels up</h3>
-              <p className="text-gray-500">Job seekers finally see what a winning resume looks like for their target role.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Why it matters */}
-      <section className="py-24 px-6 max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-6">The bar has always been hidden. Until now.</h2>
-        <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-          Levels.fyi made salary data transparent. Glassdoor opened up company reviews. landr.fyi does the same for resumes — real signal, from real people, for real jobs.
-        </p>
-      </section>
-
-      {/* CTA */}
-      <section className="bg-indigo-600 py-24 px-6 text-white text-center">
-        <h2 className="text-3xl font-bold mb-4">Ready to land your next role?</h2>
-        <p className="text-indigo-200 mb-10">Browse real resumes from people who got hired. See the bar. Clear it.</p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <a href="/browse" className="bg-white text-indigo-600 font-semibold px-8 py-4 rounded-full hover:bg-indigo-50 transition">
-            Browse Resumes
-          </a>
-          <a href="/submit" className="border-2 border-white text-white font-semibold px-8 py-4 rounded-full hover:bg-indigo-500 transition">
-            Share Yours
-          </a>
-        </div>
-      </section>
-
-      {/* Feedback Section */}
-      <section className="py-16 px-6 max-w-2xl mx-auto text-center">
-        <h2 className="text-2xl font-bold mb-2">Have feedback or found a bug?</h2>
-        <p className="text-gray-500 mb-8">We're actively improving landr.fyi. Let us know what you think.</p>
-        {feedbackSubmitted ? (
-          <p className="text-green-500 font-medium">✅ Thanks for your feedback!</p>
+        {submitted ? (
+          <p className="text-emerald-600 font-medium text-center py-8">✅ Thanks for your feedback!</p>
         ) : (
-          <form onSubmit={handleFeedback} className="flex flex-col gap-4 text-left">
-            <div className="flex gap-4">
-              <input
-                type="text"
-                placeholder="Your name (optional)"
-                value={feedback.name}
-                onChange={(e) => setFeedback(f => ({ ...f, name: e.target.value }))}
-                className="flex-1 border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-              <input
-                type="email"
-                required
-                placeholder="Your email"
-                value={feedback.email}
-                onChange={(e) => setFeedback(f => ({ ...f, email: e.target.value }))}
-                className="flex-1 border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Your name (optional)"
+              value={feedback.name}
+              onChange={(e) => setFeedback(f => ({ ...f, name: e.target.value }))}
+              className="w-full border border-[hsl(var(--border))] px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]/30 bg-[hsl(var(--background))]"
+            />
+            <input
+              type="email"
+              required
+              placeholder="Your email"
+              value={feedback.email}
+              onChange={(e) => setFeedback(f => ({ ...f, email: e.target.value }))}
+              className="w-full border border-[hsl(var(--border))] px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]/30 bg-[hsl(var(--background))]"
+            />
             <textarea
               required
               rows={4}
               placeholder="What's on your mind? Bug reports, feature requests, general feedback..."
               value={feedback.message}
               onChange={(e) => setFeedback(f => ({ ...f, message: e.target.value }))}
-              className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              className="w-full border border-[hsl(var(--border))] px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]/30 resize-none bg-[hsl(var(--background))]"
             />
-            {feedbackError && <p className="text-red-400 text-sm">{feedbackError}</p>}
-            <button
-              type="submit"
-              disabled={feedbackLoading}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-indigo-700 transition"
-            >
-              {feedbackLoading ? "Sending..." : "Send Feedback"}
-            </button>
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <Button onClick={handleSubmit} variant="primary" size="md" className="w-full h-12">
+              {loading ? "Sending..." : "Send Feedback"}
+            </Button>
           </form>
         )}
-      </section>
+      </div>
+    </div>
+  );
+}
 
-      {/* Footer */}
-      <footer className="text-center py-8 text-gray-400 text-sm">
-        <p>👀 {visitorCount.toLocaleString()} visits and counting</p>
-        <p className="mt-1">© 2026 landr.fyi — Built for job seekers, by job seekers.</p>
-        <p className="mt-2">
-          <a href="/legal" className="hover:text-indigo-600 transition">Terms · Privacy · Disclaimer</a>
-        </p>
-      </footer>
-      {/* Feedback Modal */}
-      {showFeedbackModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-6">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Send Feedback</h2>
-              <button onClick={() => setShowFeedbackModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl font-light">×</button>
-            </div>
-            {feedbackSubmitted ? (
-              <p className="text-green-500 font-medium text-center py-8">✅ Thanks for your feedback!</p>
-            ) : (
-              <form onSubmit={handleFeedback} className="flex flex-col gap-4">
-                <input
-                  type="text"
-                  placeholder="Your name (optional)"
-                  value={feedback.name}
-                  onChange={(e) => setFeedback(f => ({ ...f, name: e.target.value }))}
-                  className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-                <input
-                  type="email"
-                  required
-                  placeholder="Your email"
-                  value={feedback.email}
-                  onChange={(e) => setFeedback(f => ({ ...f, email: e.target.value }))}
-                  className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="What's on your mind? Bug reports, feature requests, general feedback..."
-                  value={feedback.message}
-                  onChange={(e) => setFeedback(f => ({ ...f, message: e.target.value }))}
-                  className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
-                />
-                {feedbackError && <p className="text-red-400 text-sm">{feedbackError}</p>}
-                <button
-                  type="submit"
-                  disabled={feedbackLoading}
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-indigo-700 transition"
-                >
-                  {feedbackLoading ? "Sending..." : "Send Feedback"}
-                </button>
-              </form>
-            )}
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+export default function HomePage() {
+  const [resumeCount, setResumeCount] = useState(null);
+  const [companyCount, setCompanyCount] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("resumes")
+      .select("*", { count: "exact", head: true })
+      .then(({ count }) => setResumeCount(count));
+
+    supabase
+      .from("resumes")
+      .select("company_name")
+      .then(({ data }) => {
+        if (data) {
+          const distinct = new Set(data.map(r => r.company_name).filter(Boolean)).size;
+          setCompanyCount(distinct);
+        }
+      });
+  }, []);
+
+  return (
+    <div className="min-h-[100dvh] flex flex-col font-sans overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <Nav onFeedback={() => setShowFeedback(true)} />
+
+      {/* HERO */}
+      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[hsl(var(--primary))]/5 rounded-full blur-[120px] pointer-events-none -z-10 translate-x-1/3 -translate-y-1/4" />
+
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
+          <div className="space-y-8 z-10 max-w-2xl">
+            <FadeIn>
+              <Badge className="px-3 py-1.5 text-sm font-medium text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 mb-6">
+                Stop guessing. Start landing.
+              </Badge>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight leading-[1.1]">
+                See the resumes that{" "}
+                <span className="text-[hsl(var(--primary))] italic">actually</span>{" "}
+                got them hired.
+              </h1>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <p className="text-lg md:text-xl text-[hsl(var(--muted-foreground))] leading-relaxed max-w-xl">
+                A community-driven library of real, anonymized resumes from people who landed roles at top companies. Transparency, finally.
+              </p>
+            </FadeIn>
+
+            <FadeIn delay={0.2} className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button href="/browse" size="lg">
+                Browse Resumes <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+              <Button href="#how-it-works" size="lg" variant="outline">
+                How it works
+              </Button>
+            </FadeIn>
+
+            <FadeIn delay={0.3} className="pt-8 border-t border-[hsl(var(--border))]/60">
+              <div className="flex items-center gap-6">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="w-10 h-10 rounded-full border-2 border-[hsl(var(--background))] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[hsl(var(--primary))]/10 to-[hsl(var(--primary))]/30"
+                    >
+                      <Eye className="w-4 h-4 text-[hsl(var(--primary))]/60" />
+                    </div>
+                  ))}
+                </div>
+                <div className="text-sm font-medium">
+                  <span className="font-bold">{resumeCount ? `${resumeCount.toLocaleString()}+` : "..."} resumes</span>
+                  <br />
+                  <span className="text-[hsl(var(--muted-foreground))]">
+                    across {companyCount ? `${companyCount}+` : "..."} companies
+                  </span>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Swipeable resume cards */}
+          <div className="relative z-10 w-full max-w-xl mx-auto lg:ml-auto lg:mr-0 pb-12">
+            <FadeIn delay={0.4}>
+              <SwipeableResumeStack />
+            </FadeIn>
           </div>
         </div>
-      )}
-    </main>
+      </section>
+
+      {/* SNEAK PEEK */}
+      <section className="py-20 bg-[hsl(var(--muted))]/30 border-y border-[hsl(var(--border))]/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold mb-4">What you&rsquo;ll see inside</h2>
+            <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
+              Browse verified resumes across engineering, design, product, and data.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <FadeIn delay={0.1}><MiniResumeThumbnail role="Software Engineer" company="Stripe" years="2 yrs" /></FadeIn>
+            <FadeIn delay={0.2}><MiniResumeThumbnail role="Senior UX Designer" company="Airbnb" years="6 yrs" /></FadeIn>
+            <FadeIn delay={0.3}><MiniResumeThumbnail role="Data Scientist" company="Netflix" years="7 yrs" /></FadeIn>
+            <FadeIn delay={0.4}><MiniResumeThumbnail role="Senior Consultant" company="McKinsey" years="7 yrs" /></FadeIn>
+          </div>
+          <div className="mt-12 text-center">
+            <Button href="/browse" variant="link" size="md">
+              View all {resumeCount ? `${resumeCount.toLocaleString()}+` : ""} resumes <ArrowRight className="ml-1 w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* MANIFESTO */}
+      <section className="py-32 px-6">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <FadeIn>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold leading-tight">
+              Levels.fyi did it for salaries.<br />
+              Glassdoor did it for reviews.<br />
+              <span className="text-[hsl(var(--primary))] italic">We&rsquo;re doing it for resumes.</span>
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <p className="text-xl text-[hsl(var(--muted-foreground))] leading-relaxed">
+              For too long, the &ldquo;perfect resume&rdquo; has been a black box guarded by generic advice articles and expensive coaches. We believe the best way to learn how to land a job is to look at the exact document that actually landed it.
+            </p>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* TRUST */}
+      <section id="how-it-works" className="py-24 bg-[hsl(var(--foreground))] text-[hsl(var(--background))] px-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <FadeIn>
+              <div className="w-12 h-12 bg-[hsl(var(--primary))]/20 rounded-xl flex items-center justify-center mb-6">
+                <ShieldCheck className="w-6 h-6 text-[hsl(var(--primary-foreground))]" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold">
+                Radically transparent. Strictly anonymous.
+              </h2>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="text-lg opacity-80 leading-relaxed">
+                We believe in sharing knowledge, not identities. Every resume submitted to landr.fyi goes through a rigorous sanitization process before it&rsquo;s published.
+              </p>
+            </FadeIn>
+            <FadeIn delay={0.2}>
+              <ul className="space-y-4">
+                {[
+                  "Names and contact information are fully removed.",
+                  "Previous employers are redacted or generalized.",
+                  "Specific niche products or internal project names are scrubbed.",
+                  "Dates can be generalized to year-only.",
+                ].map((text, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-[hsl(var(--primary))] mt-0.5 shrink-0" />
+                    <span className="opacity-90">{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </FadeIn>
+          </div>
+
+          <div className="relative">
+            <FadeIn delay={0.3}>
+              <Card className="bg-[hsl(var(--background))] text-[hsl(var(--foreground))] p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4">
+                  <Badge className="bg-emerald-100 text-emerald-800 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Work Email Verified
+                  </Badge>
+                </div>
+                <div className="space-y-6 mt-8">
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-1">Before</div>
+                    <div className="font-mono text-sm bg-[hsl(var(--muted))]/50 p-3 rounded-md line-through text-[hsl(var(--muted-foreground))]">
+                      John Doe · john.doe@email.com · 555-0192
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-1">After (What we show)</div>
+                    <div className="font-mono text-sm bg-[hsl(var(--primary))]/5 p-3 rounded-md border border-[hsl(var(--primary))]/20 flex items-center gap-2">
+                      <span className="w-32 h-4 bg-[hsl(var(--muted))] rounded inline-block" /> ·{" "}
+                      <span className="italic text-[hsl(var(--muted-foreground))]">[Contact Redacted]</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="py-24 px-6 border-b border-[hsl(var(--border))]/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-serif font-bold">The proof is in the offers</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "I spent months tweaking my bullet points based on blog posts. Seeing 5 actual Stripe SWE resumes made me realize my impact was buried. Rewrote it, got the interview.",
+                author: "Backend SWE, hired at Stripe",
+              },
+              {
+                quote: "As a career switcher, I had no idea what 'good' looked like for Product. landr.fyi gave me the exact blueprint. It's the highest ROI resource I found.",
+                author: "Career switcher — PM at Spotify",
+              },
+              {
+                quote: "Finally, concrete examples of how to quantify design impact. Seeing how a Senior UX Designer at Airbnb formatted their case studies changed my whole approach.",
+                author: "Product Designer, hired at Figma",
+              },
+            ].map((t, i) => (
+              <FadeIn key={i} delay={i * 0.1}>
+                <Card className="h-full p-8 bg-[hsl(var(--muted))]/20 hover:bg-[hsl(var(--card))] transition-colors">
+                  <p className="text-lg font-serif italic mb-6 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[hsl(var(--primary))]/10 flex items-center justify-center">
+                      <Award className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    </div>
+                    <span className="font-medium text-sm text-[hsl(var(--muted-foreground))]">{t.author}</span>
+                  </div>
+                </Card>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-32 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[hsl(var(--primary))]/5 -z-10" />
+        <div className="max-w-3xl mx-auto text-center space-y-8">
+          <FadeIn>
+            <h2 className="text-4xl md:text-5xl font-serif font-bold">
+              You climbed the ladder.<br />Throw a rope down.
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <p className="text-xl text-[hsl(var(--muted-foreground))]">
+              Help demystify the hiring process. Share your anonymized resume and help the next generation of talent land their dream role.
+            </p>
+          </FadeIn>
+          <FadeIn delay={0.2} className="pt-4">
+            <Button href="/submit" size="lg">Submit Your Resume</Button>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-[hsl(var(--background))] border-t border-[hsl(var(--border))] pt-16 pb-8 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <FileText className="w-5 h-5 text-[hsl(var(--primary))]" />
+              <span className="font-serif font-bold text-xl tracking-tight">landr.fyi</span>
+            </Link>
+            <p className="text-[hsl(var(--muted-foreground))] max-w-sm mb-6">
+              A community-driven library of real, anonymized resumes from people who actually got hired at top companies.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4">Product</h4>
+            <ul className="space-y-3 text-sm text-[hsl(var(--muted-foreground))]">
+              <li><Link href="/browse" className="hover:text-[hsl(var(--foreground))] transition-colors">Browse Resumes</Link></li>
+              <li><Link href="/submit" className="hover:text-[hsl(var(--foreground))] transition-colors">Submit Yours</Link></li>
+              <li><Link href="#how-it-works" className="hover:text-[hsl(var(--foreground))] transition-colors">How it works</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4">Legal & Trust</h4>
+            <ul className="space-y-3 text-sm text-[hsl(var(--muted-foreground))]">
+              <li><Link href="/legal" className="hover:text-[hsl(var(--foreground))] transition-colors">Privacy & Terms</Link></li>
+              <li>
+                <button onClick={() => setShowFeedback(true)} className="hover:text-[hsl(var(--foreground))] transition-colors">
+                  Send Feedback
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto border-t border-[hsl(var(--border))]/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[hsl(var(--muted-foreground))]">
+          <p>© {new Date().getFullYear()} landr.fyi. Built for job seekers, by job seekers.</p>
+        </div>
+      </footer>
+
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
+    </div>
   );
 }
