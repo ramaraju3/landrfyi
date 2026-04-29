@@ -21,7 +21,7 @@ export default function Browse() {
 
     if (filter.industry) query = query.eq("industry", filter.industry);
 if (filter.role) {
-      query = query.or(`role.ilike.%${filter.role}%,company_name.ilike.%${filter.role}%`);
+      query = query.or(`role.ilike.%${filter.role}%,company_name.ilike.%${filter.role}%,resume_text.ilike.%${filter.role}%`);
     }
     if (filter.exp_level) {
       if (filter.exp_level === "no_exp") query = query.eq("years_of_experience", 0);
@@ -60,7 +60,7 @@ if (filter.role) {
 <div className="flex gap-4 mb-10 flex-wrap">
   <input
     type="text"
-    placeholder="Search by role or company..."
+    placeholder="Search by role, company, or skill (e.g. Python, stress testing)..."
     className="border px-4 py-2 rounded-full text-sm outline-none flex-1 min-w-48"
     onChange={(e) => setFilter(f => ({ ...f, role: e.target.value }))}
   />
