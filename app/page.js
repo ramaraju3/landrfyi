@@ -456,6 +456,7 @@ function FeedbackModal({ onClose }) {
 export default function HomePage() {
   const [resumeCount, setResumeCount] = useState(null);
   const [companyCount, setCompanyCount] = useState(null);
+  const [visitorCount, setVisitorCount] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
@@ -473,6 +474,20 @@ export default function HomePage() {
           setCompanyCount(distinct);
         }
       });
+  }, []);
+
+  useEffect(() => {
+    const trackAndFetch = async () => {
+      if (!localStorage.getItem("landrfyi_visited")) {
+        const { error } = await supabase.from("page_views").insert([{}]);
+        if (!error) localStorage.setItem("landrfyi_visited", "1");
+      }
+      const { count } = await supabase
+        .from("page_views")
+        .select("*", { count: "exact", head: true });
+      setVisitorCount(count);
+    };
+    trackAndFetch();
   }, []);
 
   return (
@@ -738,6 +753,9 @@ export default function HomePage() {
         </div>
         <div className="max-w-7xl mx-auto border-t border-[hsl(var(--border))]/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[hsl(var(--muted-foreground))]">
           <p>© {new Date().getFullYear()} landr.fyi. Built for job seekers, by job seekers.</p>
+          {visitorCount !== null && (
+            <p className="mt-1 text-[hsl(var(--muted-foreground))]/60">{visitorCount.toLocaleString()} unique visitors</p>
+          )}
         </div>
       </footer>
 
