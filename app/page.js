@@ -18,108 +18,6 @@ import { supabase } from "../lib/supabase";
 /* Resume data                                                         */
 /* ------------------------------------------------------------------ */
 
-const RESUMES = [
-  {
-    role: "Senior Product Manager",
-    badge: "Hired at Google",
-    experience: "8 yrs",
-    year: "2021",
-    positions: [
-      {
-        title: "Lead PM, Growth", years: "2019–2021",
-        bullets: [
-          "Owned activation funnel; shipped onboarding redesign that lifted D7 retention 22% (n=3.4M users)",
-          "Managed cross-functional team of 9; partnered with Eng/Design/DS on quarterly roadmap",
-          "Launched paid referral loop generating $4.1M incremental ARR",
-        ],
-      },
-      {
-        title: "Senior PM", years: "2017–2019",
-        bullets: [
-          "Drove pricing experiment (15 cells) that increased ARPU 11% with no churn impact",
-          "Shipped self-serve checkout in 4 markets, reducing time-to-purchase by 38%",
-        ],
-      },
-    ],
-    skills: "Product Strategy · Experimentation · SQL · Roadmapping · 0→1 · Growth",
-    edu: "B.S. Computer Science · 2013",
-  },
-  {
-    role: "Software Engineer",
-    badge: "Hired at Stripe",
-    experience: "5 yrs",
-    year: "2023",
-    positions: [
-      {
-        title: "Senior SWE, Payments Infra", years: "2021–2023",
-        bullets: [
-          "Led redesign of payment retry logic; reduced failed transaction rate by 18% across 40M monthly users",
-          "Built internal rate-limiting framework adopted by 12 teams; cut incident rate by 30%",
-          "Mentored 3 junior engineers; all promoted within 18 months",
-        ],
-      },
-      {
-        title: "Software Engineer", years: "2019–2021",
-        bullets: [
-          "Shipped Stripe Billing's proration engine rewrite, handling $2B+ in annual recurring revenue",
-          "Reduced p99 API latency by 40ms through query optimization and caching layer",
-        ],
-      },
-    ],
-    skills: "Go · TypeScript · Postgres · Distributed Systems · gRPC · Kafka",
-    edu: "B.S. Computer Science · 2018",
-  },
-  {
-    role: "Senior UX Designer",
-    badge: "Hired at Airbnb",
-    experience: "6 yrs",
-    year: "2022",
-    positions: [
-      {
-        title: "Senior UX Designer, Hosting", years: "2020–2022",
-        bullets: [
-          "Redesigned host onboarding flow; increased listing completion rate by 34% (n=1.2M hosts)",
-          "Led design system contribution adding 40+ components adopted by 8 product teams",
-          "Ran 20+ usability studies; translated findings into a 22% reduction in support tickets",
-        ],
-      },
-      {
-        title: "UX Designer", years: "2017–2020",
-        bullets: [
-          "Owned mobile search experience redesign; drove 15% uplift in booking conversion",
-          "Collaborated with Research to map 6 traveler personas used across the design org",
-        ],
-      },
-    ],
-    skills: "Figma · Prototyping · Design Systems · User Research · Accessibility",
-    edu: "B.F.A. Interaction Design · 2016",
-  },
-  {
-    role: "Data Scientist",
-    badge: "Hired at Netflix",
-    experience: "4 yrs",
-    year: "2023",
-    positions: [
-      {
-        title: "Senior Data Scientist, Recommendations", years: "2021–2023",
-        bullets: [
-          "Built next-watch recommendation model improving avg watch time by 9 min/week per subscriber",
-          "Designed A/B framework for content ranking tests, running 30+ experiments per quarter",
-          "Reduced model retraining time by 60% via pipeline refactor serving 230M subscribers",
-        ],
-      },
-      {
-        title: "Data Scientist", years: "2020–2021",
-        bullets: [
-          "Developed churn propensity model with 84% precision; informed $12M retention campaign",
-          "Partnered with engineering to productionize 4 ML models into real-time serving",
-        ],
-      },
-    ],
-    skills: "Python · PyTorch · Spark · SQL · A/B Testing · Statistical Modeling",
-    edu: "M.S. Statistics · 2019",
-  },
-];
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -217,6 +115,14 @@ function Nav({ onFeedback }) {
 /* ------------------------------------------------------------------ */
 
 function ResumeCard({ data, className = "", style }) {
+  const bullets = data.resume_text
+    ? data.resume_text
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.startsWith("•") || l.startsWith("-") || l.startsWith("·"))
+        .slice(0, 3)
+    : [];
+
   return (
     <Card className={`w-full max-w-lg shadow-xl overflow-hidden ${className}`} style={style}>
       <div className="p-8 sm:p-10 flex flex-col gap-6">
@@ -224,62 +130,49 @@ function ResumeCard({ data, className = "", style }) {
           <div className="space-y-2">
             <div className="w-48 h-8 bg-[hsl(var(--muted))]/80 rounded-md" />
             <div className="text-[hsl(var(--muted-foreground))] font-medium text-sm sm:text-base flex items-center gap-2">
-              {data.role} <span className="text-[hsl(var(--muted-foreground))]/50">·</span> {data.experience} experience
+              {data.role} <span className="text-[hsl(var(--muted-foreground))]/50">·</span> {data.years_of_experience} yrs exp
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
             <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-semibold py-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              {data.badge}
+              Hired at {data.company_name}
             </Badge>
-            <span className="text-xs text-[hsl(var(--muted-foreground))] font-medium">{data.year}</span>
+            <span className="text-xs text-[hsl(var(--muted-foreground))] font-medium">{data.year_hired}</span>
           </div>
         </div>
 
         <div className="w-full h-px bg-[hsl(var(--border))]/50 my-2" />
 
-        <div className="space-y-6">
-          {data.positions.map((pos, pi) => (
-            <div key={pi} className="space-y-3">
-              <div className="flex justify-between items-baseline">
-                <h4 className="font-semibold text-[15px]">{pos.title}</h4>
-                <div className="flex items-center gap-2">
-                  <span className="w-24 h-4 bg-[hsl(var(--muted))]/60 rounded-sm inline-block" />
-                  <span className="text-xs text-[hsl(var(--muted-foreground))]">{pos.years}</span>
-                </div>
-              </div>
-              <ul className="space-y-2">
-                {pos.bullets.map((b, bi) => (
-                  <li key={bi} className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed flex items-start gap-2">
-                    <span className="text-[hsl(var(--primary))]/60 mt-0.5">·</span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
+        <div className="space-y-2">
+          {bullets.length > 0 ? bullets.map((b, i) => (
+            <div key={i} className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed flex items-start gap-2">
+              <span className="text-[hsl(var(--primary))]/60 mt-0.5 shrink-0">·</span>
+              <span>{b.replace(/^[•\-·]\s*/, "")}</span>
             </div>
-          ))}
+          )) : (
+            <div className="space-y-2">
+              <div className="w-full h-3 bg-[hsl(var(--muted))]/50 rounded" />
+              <div className="w-5/6 h-3 bg-[hsl(var(--muted))]/50 rounded" />
+              <div className="w-4/6 h-3 bg-[hsl(var(--muted))]/50 rounded" />
+            </div>
+          )}
         </div>
 
         <div className="w-full h-px bg-[hsl(var(--border))]/50 my-2" />
 
-        <div className="space-y-4">
-          <div>
-            <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-2 block">Skills</span>
-            <div className="text-sm font-medium">{data.skills}</div>
-          </div>
-          <div>
-            <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-2 block">Education</span>
-            <div className="text-sm text-[hsl(var(--muted-foreground))]">{data.edu}</div>
-          </div>
+        <div>
+          <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-2 block">Industry</span>
+          <div className="text-sm font-medium">{data.industry}</div>
         </div>
       </div>
     </Card>
   );
 }
 
-function SwipeableResumeStack() {
+function SwipeableResumeStack({ resumes }) {
   const [{ current, direction }, setState] = useState({ current: 0, direction: 0 });
-  const total = RESUMES.length;
+  const total = resumes.length;
 
   const go = (dir) => setState(prev => ({
     current: (prev.current + 1) % total,
@@ -299,10 +192,10 @@ function SwipeableResumeStack() {
     <div className="relative w-full h-[600px] flex items-center justify-center select-none">
       {/* Back cards (decorative) */}
       <div className="absolute inset-0 transform translate-x-8 -translate-y-8 rotate-6 scale-95 opacity-30 blur-[1px] pointer-events-none">
-        <ResumeCard data={RESUMES[next2]} />
+        <ResumeCard data={resumes[next2]} />
       </div>
       <div className="absolute inset-0 transform translate-x-4 -translate-y-4 rotate-3 scale-[0.98] opacity-60 pointer-events-none">
-        <ResumeCard data={RESUMES[next1]} />
+        <ResumeCard data={resumes[next1]} />
       </div>
 
       {/* Front card — draggable */}
@@ -325,14 +218,14 @@ function SwipeableResumeStack() {
           }}
           whileDrag={{ scale: 1.02 }}
         >
-          <ResumeCard data={RESUMES[current]} className="shadow-2xl shadow-[hsl(var(--primary))]/10" />
+          <ResumeCard data={resumes[current]} className="shadow-2xl shadow-[hsl(var(--primary))]/10" />
         </motion.div>
       </AnimatePresence>
 
       {/* Dots + swipe hint */}
       <div className="absolute -bottom-8 left-0 right-0 flex flex-col items-center gap-3">
         <div className="flex items-center gap-2">
-          {RESUMES.map((_, i) => (
+          {resumes.map((_, i) => (
             <button
               key={i}
               onClick={() => setState({ current: i, direction: i > current ? 1 : -1 })}
@@ -457,6 +350,7 @@ export default function HomePage() {
   const [resumeCount, setResumeCount] = useState(null);
   const [companyCount, setCompanyCount] = useState(null);
   const [visitorCount, setVisitorCount] = useState(null);
+  const [heroResumes, setHeroResumes] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
@@ -473,6 +367,15 @@ export default function HomePage() {
           const distinct = new Set(data.map(r => r.company_name).filter(Boolean)).size;
           setCompanyCount(distinct);
         }
+      });
+
+    supabase
+      .from("resumes")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(4)
+      .then(({ data }) => {
+        if (data) setHeroResumes(data);
       });
   }, []);
 
@@ -552,7 +455,7 @@ export default function HomePage() {
           {/* Swipeable resume cards */}
           <div className="relative z-10 w-full max-w-xl mx-auto lg:ml-auto lg:mr-0 pb-12">
             <FadeIn delay={0.4}>
-              <SwipeableResumeStack />
+              {heroResumes.length >= 3 && <SwipeableResumeStack resumes={heroResumes} />}
             </FadeIn>
           </div>
         </div>
