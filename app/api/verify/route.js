@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+// Service-role client: writes secrets to the private table, which is
+// unreadable by anon/authenticated. This key must never be exposed client-side.
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export async function POST(request) {
@@ -13,9 +15,16 @@ export async function POST(request) {
     const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
 
     const { error } = await supabase
-      .from("resumes")
-      .update({ verification_token: token, work_email: workEmail })
-      .eq("id", resumeId);
+      .from("resume_private")
+      .upsert(
+        {
+          resume_id: resumeId,
+          work_email: workEmail,
+          verification_token: token,
+          token_created_at: new Date().toISOString(),
+        },
+        { onConflict: "resume_id" }
+      );
 
     if (error) throw error;
 

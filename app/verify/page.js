@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "../../lib/supabase";
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -18,23 +17,13 @@ function VerifyContent() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("resumes")
-        .select("verification_token")
-        .eq("id", id)
-        .single();
+      const res = await fetch("/api/verify/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeId: id, token }),
+      });
 
-      if (error || !data || data.verification_token !== token) {
-        setStatus("error");
-        return;
-      }
-
-      const { error: updateError } = await supabase
-        .from("resumes")
-        .update({ verified: true })
-        .eq("id", id);
-
-      if (updateError) {
+      if (!res.ok) {
         setStatus("error");
         return;
       }
